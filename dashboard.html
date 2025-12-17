@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Gateway - Control Center</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 16px;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            flex: 1;
+            min-width: 200px;
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .status-card h3 {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-value {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .integration-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .integration-card:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .integration-card.connected {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .integration-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .integration-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .integration-status {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .build-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .build-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .build-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .build-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-building {
+            background: #667eea;
+            color: white;
+        }
+
+        .badge-ready {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+        }
+
+        .build-details {
+            font-size: 13px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .opportunity-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #764ba2;
+        }
+
+        .opportunity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .opportunity-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .opportunity-revenue {
+            color: #00ff88;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .opportunity-description {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        .opportunity-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .feature-tag {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #667eea;
+        }
+
+        .profit-score {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .score-bar {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700 0%, #ff8800 100%);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .building {
+            animation: pulse 2s infinite;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .ws-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(26, 26, 46, 0.9);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .ws-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 AI Agent Gateway - Control Center</h1>
+            <p class="subtitle">Enterprise AI Agent Orchestration Platform</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-card">
+                <h3>Active Agents</h3>
+                <div class="status-value" id="agentCount">0</div>
+                <div class="status-label">Working autonomously</div>
+            </div>
+            <div class="status-card">
+                <h3>Active Builds</h3>
+                <div class="status-value" id="buildCount">0</div>
+                <div class="status-label">Apps in progress</div>
+            </div>
+            <div class="status-card">
+                <h3>Generated Apps</h3>
+                <div class="status-value" id="appCount">0</div>
+                <div class="status-label">Ready for deployment</div>
+            </div>
+            <div class="status-card">
+                <h3>Integrations</h3>
+                <div class="status-value" id="integrationCount">0</div>
+                <div class="status-label">Services connected</div>
+            </div>
+            <div class="status-card">
+                <h3>Platform Build</h3>
+                <div class="status-value" id="platformProgress">100</div>
+                <div class="status-label">% Complete</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="panel">
+                <h2>🔌 Quick Connect Integrations</h2>
+                <div class="integration-grid" id="integrationGrid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>💡 Profitable App Opportunities</h2>
+                <div id="opportunitiesContainer">
+                    <div class="empty-state">Agents are analyzing market opportunities...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>🔨 Active Builds <span class="building">●</span></h2>
+            <div id="activeBuildsContainer">
+                <div class="empty-state">Agents will start building apps automatically...</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>✅ Ready for Deployment</h2>
+            <div id="readyAppsContainer">
+                <div class="empty-state">Completed apps will appear here for your approval</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ws-status" id="wsStatus">
+        <div class="ws-dot"></div>
+        <span>Connected to AI Agents</span>
+    </div>
+
+    <!-- Connect Integration Modal -->
+    <div class="modal" id="connectModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Connect Integration</h3>
+            <div class="form-group">
+                <label>API Key / Token</label>
+                <input type="text" id="apiKeyInput" placeholder="Enter your API key or token">
+            </div>
+            <div class="form-group">
+                <label>Additional Config (Optional)</label>
+                <input type="text" id="configInput" placeholder="JSON config if needed">
+            </div>
+            <div>
+                <button class="action-btn btn-primary" onclick="confirmConnect()">Connect Now</button>
+                <button class="action-btn" onclick="closeModal()" style="background: #333;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let ws;
+        let selectedIntegration = null;
+
+        // Initialize
+        async function init() {
+            loadDashboardStats();
+            loadIntegrations();
+            loadActiveBuilds();
+            loadReadyApps();
+            connectWebSocket();
+            
+            // Refresh data periodically
+            setInterval(loadDashboardStats, 5000);
+            setInterval(loadActiveBuilds, 3000);
+        }
+
+        async function loadDashboardStats() {
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('agentCount').textContent = data.stats.totalAgents || 0;
+                    document.getElementById('buildCount').textContent = data.stats.activeBuilds || 0;
+                    document.getElementById('appCount').textContent = data.stats.generatedApps || 0;
+                    document.getElementById('integrationCount').textContent = 
+                        data.stats.integrations?.activeConnections || 0;
+                    document.getElementById('platformProgress').textContent = 
+                        data.stats.platformBuildProgress || 100;
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function loadIntegrations() {
+            try {
+                const response = await fetch(`${API_URL}/api/integrations`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const grid = document.getElementById('integrationGrid');
+                    grid.innerHTML = data.integrations.map(int => `
+                        <div class="integration-card" onclick="connectIntegration('${int.id}', '${int.name}')">
+                            <div class="integration-icon">${int.icon}</div>
+                            <div class="integration-name">${int.name}</div>
+                            <div class="integration-status">Click to connect</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load integrations:', error);
+            }
+        }
+
+        async function loadActiveBuilds() {
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard/builds/active`);
+                const data = await response.json();
+                
+                if (data.success && data.builds.length > 0) {
+                    const container = document.getElementById('activeBuildsContainer');
+                    container.innerHTML = data.builds.map(build => `
+                        <div class="build-item">
+                            <div class="build-header">
+                                <div class="build-name">${build.name}</div>
+                                <div class="build-badge badge-building">Building</div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${build.progress}%"></div>
+                            </div>
+                            <div class="build-details">
+                                Progress: ${build.progress}% • 
+                                ${build.phases?.filter(p => p.status === 'completed').length || 0}/${build.phases?.length || 0} phases complete
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load builds:', error);
+            }
+        }
+
+        async function loadReadyApps() {
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard/builds/completed`);
+                const data = await response.json();
+                
+                if (data.success && data.apps.length > 0) {
+                    const container = document.getElementById('readyAppsContainer');
+                    container.innerHTML = data.apps.map(app => `
+                        <div class="build-item">
+                            <div class="build-header">
+                                <div class="build-name">${app.name}</div>
+                                <div class="build-badge badge-ready">${app.status === 'deployed' ? 'Deployed' : 'Ready'}</div>
+                            </div>
+                            <div class="build-details">
+                                ${app.category} • ${app.estimatedRevenue} potential revenue
+                                ${app.deploymentUrl ? `<br>Live at: <a href="${app.deploymentUrl}" target="_blank">${app.deploymentUrl}</a>` : ''}
+                            </div>
+                            ${app.status !== 'deployed' ? `
+                                <button class="action-btn btn-success" onclick="approveDeployment('${app.id}')">
+                                    🚀 Deploy to Vercel
+                                </button>
+                                <button class="action-btn btn-primary" onclick="setupPayment('${app.id}')">
+                                    💳 Setup Payment
+                                </button>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load ready apps:', error);
+            }
+        }
+
+        function connectIntegration(id, name) {
+            selectedIntegration = { id, name };
+            document.getElementById('modalTitle').textContent = `Connect ${name}`;
+            document.getElementById('connectModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('connectModal').classList.remove('show');
+            selectedIntegration = null;
+        }
+
+        async function confirmConnect() {
+            if (!selectedIntegration) return;
+            
+            const apiKey = document.getElementById('apiKeyInput').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/integrations/connect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: 'default-user',
+                        integrationId: selectedIntegration.id,
+                        config: { apiKey }
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert(`✅ ${selectedIntegration.name} connected successfully!`);
+                    closeModal();
+                    loadIntegrations();
+                    loadDashboardStats();
+                }
+            } catch (error) {
+                alert('Connection failed: ' + error.message);
+            }
+        }
+
+        async function approveDeployment(buildId) {
+            if (!confirm('Deploy this app to Vercel?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard/builds/${buildId}/approve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ deploymentTarget: 'vercel' })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('🚀 Deployment started! App will be live in a few seconds.');
+                    setTimeout(loadReadyApps, 2000);
+                }
+            } catch (error) {
+                alert('Deployment failed: ' + error.message);
+            }
+        }
+
+        async function setupPayment(buildId) {
+            const provider = prompt('Payment provider (stripe/paypal):', 'stripe');
+            if (!provider) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard/builds/${buildId}/payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        provider,
+                        pricing: { type: 'subscription', amount: 9.99 }
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    alert('💳 Payment configured successfully!');
+                    loadReadyApps();
+                }
+            } catch (error) {
+                alert('Payment setup failed: ' + error.message);
+            }
+        }
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                document.getElementById('wsStatus').innerHTML = `
+                    <div class="ws-dot"></div>
+                    <span>Connected to AI Agents</span>
+                `;
+            };
+            
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                console.log('WebSocket message:', message.type);
+                
+                if (message.type === 'build-progress' || message.type === 'build-started') {
+                    loadActiveBuilds();
+                }
+                if (message.type === 'build-completed' || message.type === 'app-deployed') {
+                    loadReadyApps();
+                    loadDashboardStats();
+                }
+                if (message.type === 'app-opportunities') {
+                    displayOpportunities(message.data.opportunities);
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket disconnected, reconnecting...');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function displayOpportunities(opportunities) {
+            if (!opportunities || opportunities.length === 0) return;
+            
+            const container = document.getElementById('opportunitiesContainer');
+            container.innerHTML = opportunities.slice(0, 3).map(opp => `
+                <div class="opportunity-card">
+                    <div class="opportunity-header">
+                        <div>
+                            <div class="opportunity-name">${opp.name}</div>
+                            <div class="opportunity-revenue">${opp.estimatedRevenue}</div>
+                        </div>
+                        <div class="profit-score">
+                            Score: ${opp.profitScore}/10
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: ${opp.profitScore * 10}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="opportunity-description">${opp.description}</div>
+                    <div class="opportunity-features">
+                        ${opp.features.slice(0, 4).map(f => `<span class="feature-tag">${f}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

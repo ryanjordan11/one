@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeCoding - AI Agent-Guided Development</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f0f23 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(180deg, rgba(102, 126, 234, 0.1) 0%, transparent 100%);
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: #aaa;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        .godmode-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8800 100%);
+            border-radius: 25px;
+            font-weight: 700;
+            color: #000;
+            font-size: 14px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .agent-card {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .agent-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .agent-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .agent-card.selected {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .agent-role {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .agent-status {
+            padding: 5px 12px;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 15px;
+            font-size: 11px;
+            color: #00ff88;
+            font-weight: 600;
+        }
+
+        .agent-expertise {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .agent-capabilities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .capability-tag {
+            padding: 4px 10px;
+            background: rgba(118, 75, 162, 0.3);
+            border-radius: 10px;
+            font-size: 11px;
+            color: #ddd;
+        }
+
+        .chat-container {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .vscode-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #888;
+        }
+
+        .status-dot.connected {
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .message-author {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .message-author.user {
+            color: #667eea;
+        }
+
+        .message-author.agent {
+            color: #00ff88;
+        }
+
+        .message-content {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .message-content.agent {
+            border-left: 3px solid #00ff88;
+        }
+
+        .step-item {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 3px solid #667eea;
+        }
+
+        .step-number {
+            font-weight: 700;
+            color: #667eea;
+            margin-right: 8px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #000;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .modal h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #aaa;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .progress-indicator {
+            margin: 20px 0;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 12px;
+            margin: 0 5px;
+        }
+
+        .progress-step.active {
+            background: rgba(102, 126, 234, 0.3);
+            border: 2px solid #667eea;
+        }
+
+        .progress-step.completed {
+            background: rgba(0, 255, 136, 0.2);
+            border: 2px solid #00ff88;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="godmode-badge">🔱 GOD MODE ACTIVE - AGENTS BUILDING</div>
+        <h1>VibeCoding</h1>
+        <p>Production-Ready Development Guided by Specialized AI Agents<br>
+        <strong>No Toys. Real Architecture. Real Code. Real Results.</strong></p>
+        <button class="btn btn-success" onclick="startNewSession()" style="font-size: 16px; padding: 18px 40px;">
+            🚀 Start Building (Agents Will Guide You)
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- Session Info -->
+        <div id="sessionInfo" style="display: none; margin-bottom: 30px;">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div>
+                        <div class="chat-title">Session Active</div>
+                        <div style="font-size: 13px; color: #888; margin-top: 5px;" id="sessionGoal"></div>
+                    </div>
+                    <div class="vscode-status" id="vscodeStatus">
+                        <div class="status-dot" id="vscodeDot"></div>
+                        <span id="vscodeText">VS Code Not Connected</span>
+                        <button class="btn btn-outline" style="padding: 8px 16px; font-size: 12px;" onclick="connectVSCode()">
+                            Connect VS Code
+                        </button>
+                    </div>
+                </div>
+                <div class="progress-indicator">
+                    <div class="progress-steps" id="progressSteps">
+                        <div class="progress-step active">Requirements</div>
+                        <div class="progress-step">Architecture</div>
+                        <div class="progress-step">Implementation</div>
+                        <div class="progress-step">Testing</div>
+                        <div class="progress-step">Deployment</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Selection -->
+        <div class="section">
+            <h2 class="section-title">
+                <span>🤖 Choose Your AI Agent</span>
+                <span style="font-size: 14px; color: #888;">(Click to select and chat)</span>
+            </h2>
+            <div class="agent-grid" id="agentGrid">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="section" id="chatSection" style="display: none;">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="chat-title" id="chatAgentName">Select an agent to start</div>
+                    <button class="btn btn-outline" style="padding: 8px 16px; font-size: 12px;" onclick="switchAgent()">
+                        Switch Agent
+                    </button>
+                </div>
+                <div class="messages-area" id="messagesArea">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <p>Start a conversation with your chosen agent</p>
+                    </div>
+                </div>
+                <div class="input-area">
+                    <input 
+                        type="text" 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Ask your agent anything..."
+                        onkeypress="handleKeyPress(event)"
+                    >
+                    <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                </div>
+                <div class="action-bar">
+                    <button class="btn btn-outline" onclick="requestCodeGen()">
+                        📝 Generate Code
+                    </button>
+                    <button class="btn btn-outline" onclick="requestVerification()">
+                        ✅ Verify Step
+                    </button>
+                    <button class="btn btn-outline" onclick="requestNextStep()">
+                        ➡️ Next Step
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Start Session Modal -->
+    <div class="modal" id="startModal">
+        <div class="modal-content">
+            <h2>🎯 Start Your Project</h2>
+            <p style="color: #aaa; margin-bottom: 30px;">
+                Tell the agents what you want to build. They'll guide you step-by-step to create something production-ready.
+            </p>
+            <div class="form-group">
+                <label>What do you want to build?</label>
+                <textarea id="projectGoalInput" placeholder="E.g., A SaaS platform for managing team tasks with real-time collaboration, payment integration, and mobile apps"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Your Name (optional)</label>
+                <input type="text" id="userNameInput" placeholder="Your name">
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <button class="btn btn-success" onclick="createSession()">
+                    Start Session
+                </button>
+                <button class="btn btn-outline" onclick="closeModal()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let currentSession = null;
+        let selectedAgent = null;
+        let agents = [];
+
+        async function init() {
+            await loadAgents();
+            connectWebSocket();
+        }
+
+        async function loadAgents() {
+            try {
+                const response = await fetch(`${API_URL}/api/vibecoding/agents`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    agents = data.agents;
+                    displayAgents();
+                }
+            } catch (error) {
+                console.error('Failed to load agents:', error);
+            }
+        }
+
+        function displayAgents() {
+            const grid = document.getElementById('agentGrid');
+            grid.innerHTML = agents.map(agent => `
+                <div class="agent-card" onclick="selectAgent('${agent.type}')">
+                    <div class="agent-header">
+                        <div class="agent-role">${agent.role}</div>
+                        <div class="agent-status">Ready</div>
+                    </div>
+                    <div class="agent-expertise">${agent.expertise}</div>
+                    <div class="agent-capabilities">
+                        ${agent.capabilities.map(cap => `
+                            <span class="capability-tag">${cap}</span>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startNewSession() {
+            document.getElementById('startModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('startModal').classList.remove('show');
+        }
+
+        async function createSession() {
+            const goal = document.getElementById('projectGoalInput').value;
+            if (!goal) {
+                alert('Please describe what you want to build');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/vibecoding/session/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: document.getElementById('userNameInput').value || 'user',
+                        projectGoal: goal
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    currentSession = data.session;
+                    document.getElementById('sessionInfo').style.display = 'block';
+                    document.getElementById('sessionGoal').textContent = goal;
+                    closeModal();
+                    alert('✅ Session started! Agents are ready to help you build.');
+                }
+            } catch (error) {
+                alert('Failed to start session: ' + error.message);
+            }
+        }
+
+        function selectAgent(agentType) {
+            if (!currentSession) {
+                alert('Please start a session first');
+                startNewSession();
+                return;
+            }
+
+            selectedAgent = agents.find(a => a.type === agentType);
+            document.querySelectorAll('.agent-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            document.getElementById('chatSection').style.display = 'block';
+            document.getElementById('chatAgentName').textContent = selectedAgent.role;
+            
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.innerHTML = `
+                <div class="message">
+                    <div class="message-header">
+                        <span class="message-author agent">${selectedAgent.role}</span>
+                    </div>
+                    <div class="message-content agent">
+                        Hello! I'm the ${selectedAgent.role}. I'm here to help you build production-ready software - no toys, real architecture, real code.
+                        <br><br>
+                        I see you want to build: <strong>${currentSession.projectGoal}</strong>
+                        <br><br>
+                        Let me guide you through this properly. First, let's make sure we understand the requirements deeply. Tell me:
+                        <div class="step-item">
+                            <span class="step-number">1.</span> Who are your target users?
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">2.</span> What's the expected scale?
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">3.</span> Any specific technical requirements?
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function switchAgent() {
+            document.getElementById('chatSection').style.display = 'none';
+            selectedAgent = null;
+            document.querySelectorAll('.agent-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+        }
+
+        async function sendMessage() {
+            if (!selectedAgent || !currentSession) return;
+
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            input.value = '';
+
+            try {
+                const response = await fetch(
+                    `${API_URL}/api/vibecoding/session/${currentSession.id}/agent/${selectedAgent.type}/chat`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message })
+                    }
+                );
+
+                const data = await response.json();
+                if (data.success) {
+                    addAgentGuidance(data.guidance);
+                }
+            } catch (error) {
+                console.error('Failed to send message:', error);
+            }
+        }
+
+        function addMessage(content, isUser = false) {
+            const messagesArea = document.getElementById('messagesArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="message-author ${isUser ? 'user' : 'agent'}">
+                        ${isUser ? 'You' : selectedAgent.role}
+                    </span>
+                </div>
+                <div class="message-content ${isUser ? '' : 'agent'}">
+                    ${content}
+                </div>
+            `;
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function addAgentGuidance(guidance) {
+            const stepsHTML = guidance.steps ? guidance.steps.map(step => `
+                <div class="step-item">
+                    <span class="step-number">Step ${step.number}:</span> ${step.instruction}
+                </div>
+            `).join('') : '';
+
+            const content = `
+                ${guidance.message}
+                ${stepsHTML}
+                ${guidance.canAutomateInVSCode ? '<br><strong>💡 I can implement this directly in VS Code if you connect it!</strong>' : ''}
+            `;
+
+            addMessage(content, false);
+        }
+
+        async function connectVSCode() {
+            if (!currentSession) {
+                alert('Please start a session first');
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${API_URL}/api/vibecoding/session/${currentSession.id}/vscode/connect`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ workspace: '/your/workspace/path' })
+                    }
+                );
+
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('vscodeDot').classList.add('connected');
+                    document.getElementById('vscodeText').textContent = 'VS Code Connected - Agents Working';
+                    alert('✅ VS Code connected! Agents can now implement code directly with your permission.');
+                }
+            } catch (error) {
+                alert('Connection failed: ' + error.message);
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function requestCodeGen() {
+            if (selectedAgent) {
+                document.getElementById('messageInput').value = 'Can you generate the code for this step?';
+                sendMessage();
+            }
+        }
+
+        function requestVerification() {
+            if (selectedAgent) {
+                document.getElementById('messageInput').value = 'Please verify that everything is implemented correctly';
+                sendMessage();
+            }
+        }
+
+        function requestNextStep() {
+            if (selectedAgent) {
+                document.getElementById('messageInput').value = 'What should I do next?';
+                sendMessage();
+            }
+        }
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(`${protocol}//${window.location.host}`);
+            
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                if (message.type === 'agent-communication') {
+                    console.log('Agent communication:', message.data);
+                }
+                if (message.type === 'god-mode-decision') {
+                    console.log('God Mode decision:', message.data);
+                }
+            };
+        }
+
+        init();
+    </script>
+</body>
+</html>
